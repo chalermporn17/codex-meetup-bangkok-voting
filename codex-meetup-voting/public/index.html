@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#111936" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' blob: data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'"
+    />
+    <meta
+      name="description"
+      content="Submit, explore, and vote in the Codex Community Meetup Bangkok #3 One-Shot Build Challenge."
+    />
+    <title>One-Shot Build Challenge · Bangkok</title>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div id="app">
+      <main class="loading-screen" id="main">
+        <img src="/icon.svg" width="54" height="54" alt="" />
+        <p>Opening the challenge…</p>
+      </main>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <dialog class="modal prompt-modal" id="prompt-modal">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">Complete original prompt</p>
+          <h2 id="prompt-title">Project prompt</h2>
+        </div>
+        <button class="icon-button" data-close-dialog="prompt-modal" aria-label="Close prompt">×</button>
+      </div>
+      <pre id="prompt-content"></pre>
+      <div class="modal-actions">
+        <button class="button button-secondary" id="copy-prompt" type="button">Copy prompt</button>
+        <button class="button button-primary" data-close-dialog="prompt-modal" type="button">Done</button>
+      </div>
+    </dialog>
+
+    <dialog class="modal vote-modal" id="vote-modal">
+      <form id="vote-form">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Audience vote</p>
+            <h2 id="vote-project-title">Vote for this project</h2>
+          </div>
+          <button class="icon-button" data-close-dialog="vote-modal" type="button" aria-label="Close voting form">×</button>
+        </div>
+        <p class="modal-copy">One vote per attendee.</p>
+        <label class="field">
+          <span>Your name / Codex handle</span>
+          <input
+            id="vote-voter-name"
+            name="voterName"
+            autocomplete="name"
+            maxlength="80"
+            required
+          />
+        </label>
+        <input id="vote-project-id" name="submissionId" type="hidden" />
+        <div class="modal-actions">
+          <button class="button button-secondary" data-close-dialog="vote-modal" type="button">Cancel</button>
+          <button class="button button-primary" type="submit">Confirm vote</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal edit-modal" id="edit-modal">
+      <form id="edit-form">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Organizer review</p>
+            <h2>Edit submission</h2>
+          </div>
+          <button class="icon-button" data-close-dialog="edit-modal" type="button" aria-label="Close editor">×</button>
+        </div>
+        <input id="edit-id" type="hidden" />
+        <div class="form-grid">
+          <label class="field">
+            <span>Participant or team</span>
+            <input id="edit-publisher" maxlength="100" required />
+          </label>
+          <label class="field">
+            <span>Project title</span>
+            <input id="edit-title" maxlength="120" required />
+          </label>
+          <label class="field field-wide">
+            <span>Short description</span>
+            <textarea id="edit-description" maxlength="200" rows="3" required></textarea>
+          </label>
+          <label class="field field-wide">
+            <span>Public project link</span>
+            <input id="edit-url" type="url" required />
+          </label>
+          <label class="field">
+            <span>Decision</span>
+            <select id="edit-status">
+              <option value="pending">Pending</option>
+              <option value="accepted">Accepted</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Replace screenshot <small>optional</small></span>
+            <input id="edit-screenshot" type="file" accept="image/jpeg,image/png,image/webp" />
+          </label>
+          <label class="field field-wide">
+            <span>Original prompt <small>read-only</small></span>
+            <textarea id="edit-prompt" rows="7" readonly></textarea>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="button button-secondary" data-close-dialog="edit-modal" type="button">Cancel</button>
+          <button class="button button-primary" type="submit">Save submission</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>

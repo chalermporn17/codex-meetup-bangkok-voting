@@ -1,0 +1,40 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "codex-meetup-bangkok-voting",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-28",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "html_handling": "none",
+    "run_worker_first": [
+      "/api/*",
+      "/media/*",
+      "/",
+      "/index.html",
+      "/submit",
+      "/gallery",
+      "/admin"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "codex-meetup-voting",
+      "database_id": "629fff76-8d25-4f27-bdb4-40719dbc2563",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "SCREENSHOTS",
+      "bucket_name": "codex-meetup-voting-screenshots"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
