@@ -1660,6 +1660,18 @@ document.addEventListener("click", (event) => {
   renderRoute();
 });
 
+// In-page anchors must not fire popstate, which re-renders the route and jumps to top.
+document.addEventListener("click", (event) => {
+  const link = event.target.closest('a[href^="#"]');
+  if (!link || link.hasAttribute("data-nav") || link.classList.contains("skip-link")) return;
+  const target = document.getElementById(link.getAttribute("href").slice(1));
+  if (!target) return;
+  event.preventDefault();
+  history.replaceState({}, "", link.getAttribute("href"));
+  target.scrollIntoView({ block: "start" });
+  target.focus({ preventScroll: true });
+});
+
 document.querySelector(".skip-link").addEventListener("click", (event) => {
   event.preventDefault();
   const main = document.querySelector("#main");
