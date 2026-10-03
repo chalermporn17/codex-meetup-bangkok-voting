@@ -600,10 +600,10 @@ test("serves the frontend and protects organizer routes", async () => {
   const pageHtml = await pageResponse.text();
   assert.match(pageHtml, /One-Shot Build Challenge/u);
   assert.match(pageHtml, /id="vote-error"/u);
-  assert.match(pageHtml, /app\.js\?v=20260830-2/u);
-  assert.match(pageHtml, /styles\.css\?v=20260830-2/u);
+  assert.match(pageHtml, /app\.js\?v=20261003-1/u);
+  assert.match(pageHtml, /styles\.css\?v=20261003-1/u);
 
-  const appScriptResponse = await fetch(`${application.origin}/app.js?v=20260830-2`);
+  const appScriptResponse = await fetch(`${application.origin}/app.js?v=20261003-1`);
   assert.equal(appScriptResponse.status, 200);
   assert.equal(appScriptResponse.headers.get("cache-control"), "no-cache");
   const appScript = await appScriptResponse.text();
@@ -612,6 +612,13 @@ test("serves the frontend and protects organizer routes", async () => {
     appScript,
     /document\.querySelector\("#vote-form"\)\.addEventListener\("submit", async \(event\) => \{\s+event\.preventDefault\(\);\s+const form = event\.currentTarget;\s+const button = form\.querySelector\('button\[type="submit"\]'\);\s+const errorTarget = getVoteErrorTarget\(form\);/u
   );
+
+  for (const [path, type] of [["/pocket-town.css", "text/css"], ["/assets/pocket-town.webp", "image/webp"], ["/assets/silkscreen.ttf", "font/ttf"], ["/assets/manrope.ttf", "font/ttf"]]) {
+    const asset = await fetch(`${application.origin}${path}`);
+    assert.equal(asset.status, 200);
+    assert.ok(asset.headers.get("content-type").startsWith(type));
+    assert.ok((await asset.arrayBuffer()).byteLength > 0);
+  }
 
   const userManualPageResponse = await fetch(`${application.origin}/manual`);
   assert.equal(userManualPageResponse.status, 200);

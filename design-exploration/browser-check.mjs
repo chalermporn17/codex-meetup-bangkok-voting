@@ -1,0 +1,57 @@
+// Run through the documented Codex browser API: await runSharedFlow(tab).
+// The server must already be running. No third-party test dependency is needed.
+export async function runSharedFlow(tab, base='http://127.0.0.1:4611', direction='index') {
+  const results=[];
+  const check=(condition,message)=>{if(!condition)throw new Error(message);results.push(message);};
+  const observe=()=>tab.playwright.domSnapshot();
+  const click=async selector=>{await tab.playwright.locator(selector).click();await observe();};
+  const open=async id=>{await click(`[data-vote="${id}"]`);};
+  const email=()=>tab.playwright.getByLabel('Your email',{exact:true});
+  const submit=async()=>{await tab.playwright.getByRole('button',{name:'Confirm vote',exact:true}).click();await observe();};
+  const success=async()=>{await tab.playwright.getByRole('heading',{name:'Vote recorded!',exact:true}).waitFor({state:'visible'});await observe();};
+  const back=async()=>{await tab.playwright.getByRole('button',{name:'Back to projects',exact:true}).click();await observe();};
+  const controls=async()=>{await tab.playwright.getByText('Preview controls',{exact:true}).click();await observe();};
+  await tab.goto(`${base}/app.html?direction=${direction}`);await observe();
+  await open('focus');
+  check(await tab.playwright.evaluate(()=>document.activeElement.id==='voter-email'),'Voting opens with email focus');
+  await email().fill('not-an-email');await submit();
+  check(await tab.playwright.evaluate(()=>!document.querySelector('#voter-email').validity.valid&&document.querySelector('#vote-dialog').open),'Invalid email keeps the vote dialog open');
+  await email().fill('Builder@Example.test');await submit();
+  check(!await tab.playwright.locator('#confirm-vote').isEnabled(),'Pending vote disables duplicate submission');
+  await success();await back();
+  check(await tab.playwright.locator('#vote-total').innerText()==='1 demo vote','First vote records one active vote');
+  await click('[data-select="bites"]');await open('bites');await email().fill('builder@example.test');await submit();
+  check(await tab.playwright.getByRole('heading',{name:'Change your vote?',exact:true}).isVisible(),'Email normalization requires explicit replacement');
+  await tab.playwright.getByRole('button',{name:'Cancel',exact:true}).click();await observe();
+  check(await tab.playwright.locator('#vote-total').innerText()==='1 demo vote','Cancel preserves the existing vote');
+  await open('bites');await email().fill('builder@example.test');await submit();
+  await tab.playwright.getByRole('button',{name:'Change vote',exact:true}).click();await success();await back();
+  check(await tab.playwright.locator('#vote-total').innerText()==='1 demo vote','Confirmed replacement does not add a second vote');
+  await open('bites');await email().fill('builder@example.test');await submit();await success();
+  check((await tab.playwright.locator('#success-copy').innerText()).includes('already support'),'Repeating the same vote remains idempotent');await back();
+  await click('[data-prompt="bites"]');
+  check((await tab.playwright.locator('#prompt-content').innerText()).includes('Bangkok lunch finder'),'Prompt viewer matches the selected project');
+  await tab.playwright.getByRole('button',{name:'Close prompt dialog',exact:true}).press('Escape');await observe();
+  check(await tab.playwright.evaluate(()=>!document.querySelector('#prompt-dialog').open&&document.activeElement.dataset.prompt==='bites'),'Escape closes the dialog and restores opener focus');
+  await controls();await tab.playwright.locator('#vote-response').selectOption('error');await controls();
+  await open('bites');await email().fill('another@example.test');await submit();
+  await tab.playwright.locator('#vote-error').filter({hasText:'connection failed'}).waitFor({state:'visible'});await observe();
+  check(await tab.playwright.evaluate(()=>document.activeElement.id==='vote-error'),'Failed vote focuses the inline error');
+  await tab.playwright.getByRole('button',{name:'Close voting dialog',exact:true}).click();await observe();
+  check(await tab.playwright.locator('#vote-total').innerText()==='1 demo vote','Failed submission preserves the vote count');
+  await controls();await tab.playwright.locator('#vote-response').selectOption('whitelist');await controls();
+  await open('bites');await email().fill('another@example.test');await submit();
+  await tab.playwright.locator('#vote-error').filter({hasText:'not on the event whitelist'}).waitFor({state:'visible'});await observe();
+  check((await tab.playwright.locator('#vote-error').innerText()).includes('contact the organizer'),'Whitelist rejection provides recovery guidance');
+  await tab.playwright.getByRole('button',{name:'Close voting dialog',exact:true}).click();await observe();
+  await controls();await tab.playwright.locator('#preview-state').selectOption('closed');await observe();
+  check(!await tab.playwright.locator('[data-vote="bites"]').isEnabled(),'Closed voting disables voting actions');
+  await tab.playwright.locator('#preview-state').selectOption('empty');await observe();
+  check(await tab.playwright.getByRole('heading',{name:'No projects yet',exact:true}).isVisible(),'Empty gallery gives a clear state');
+  await tab.playwright.locator('#preview-state').selectOption('loading');await observe();
+  check(await tab.playwright.getByRole('status',{name:'Loading projects',exact:true}).isVisible(),'Loading state is exposed accessibly');
+  await tab.playwright.locator('#preview-state').selectOption('error');await controls();
+  await tab.playwright.getByRole('button',{name:'Try again',exact:true}).click();await observe();
+  check(await tab.playwright.locator('[data-select]').count()===6,'Retry restores all six sample projects');
+  return results;
+}

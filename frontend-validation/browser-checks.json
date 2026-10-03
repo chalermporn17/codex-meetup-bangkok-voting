@@ -1,0 +1,96 @@
+[
+  {
+    "cards": 6,
+    "overflow": false,
+    "page": "home",
+    "width": 1440
+  },
+  {
+    "focused": "main",
+    "inputFont": "16px",
+    "overflow": false,
+    "page": "submit",
+    "width": 1440
+  },
+  {
+    "cards": 6,
+    "overflow": false,
+    "page": "home",
+    "width": 390
+  },
+  {
+    "focused": "main",
+    "inputFont": "16px",
+    "overflow": false,
+    "page": "submit",
+    "width": 390
+  },
+  {
+    "check": "prompt Escape restores focus",
+    "pass": true
+  },
+  {
+    "check": "whitelist error keeps input and focus",
+    "pass": true
+  },
+  {
+    "check": "vote success",
+    "pass": true
+  },
+  {
+    "check": "replacement requires confirmation",
+    "pass": true
+  },
+  {
+    "check": "confirmed replacement completes",
+    "pass": true
+  },
+  {
+    "check": "replacement screenshot has one preview",
+    "pass": true
+  },
+  {
+    "check": "submission success receives focus",
+    "pass": true
+  },
+  {
+    "check": "pending submission remains private",
+    "pass": true
+  },
+  {
+    "check": "live closure removes vote actions and closes dialog",
+    "pass": true
+  },
+  {
+    "check": "closed submissions show explanation",
+    "pass": true
+  },
+  {
+    "check": "manual mobile",
+    "pass": true
+  },
+  {
+    "check": "organizer keeps original theme",
+    "pass": true
+  },
+  {
+    "check": "results with long multilingual title at 320px",
+    "pass": true
+  },
+  {
+    "check": "network failure shows retry",
+    "pass": true
+  },
+  {
+    "check": "connection retry recovers",
+    "pass": true
+  },
+  {
+    "check": "long content and missing image fallback at 320px",
+    "pass": true
+  },
+  {
+    "check": "results desktop",
+    "pass": true
+  }
+]

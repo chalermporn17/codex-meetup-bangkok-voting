@@ -1,0 +1,34 @@
+{
+  "motion": [
+    "Four reference characters appear only in the town scene",
+    "Visible scene plays automatically",
+    "Walking animation is running",
+    "Keyboard pause updates its label and pressed state",
+    "Paused character holds its exact position",
+    "Pause stops every character and footstep",
+    "User pause survives a gallery rerender",
+    "Play resumes the town",
+    "Scene pauses when scrolled offscreen",
+    "Scene resumes when visible again",
+    "No horizontal overflow"
+  ],
+  "voting": [
+    "Voting opens with email focus",
+    "Invalid email keeps the vote dialog open",
+    "Pending vote disables duplicate submission",
+    "First vote records one active vote",
+    "Email normalization requires explicit replacement",
+    "Cancel preserves the existing vote",
+    "Confirmed replacement does not add a second vote",
+    "Repeating the same vote remains idempotent",
+    "Prompt viewer matches the selected project",
+    "Escape closes the dialog and restores opener focus",
+    "Failed vote focuses the inline error",
+    "Failed submission preserves the vote count",
+    "Whitelist rejection provides recovery guidance",
+    "Closed voting disables voting actions",
+    "Empty gallery gives a clear state",
+    "Loading state is exposed accessibly",
+    "Retry restores all six sample projects"
+  ]
+}

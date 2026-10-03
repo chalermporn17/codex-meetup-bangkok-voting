@@ -24,7 +24,12 @@ class ApiError extends Error {
 }
 
 async function api(path, options = {}) {
-  const response = await fetch(path, { credentials: "same-origin", ...options });
+  let response;
+  try {
+    response = await fetch(path, { credentials: "same-origin", ...options });
+  } catch {
+    throw new Error("Could not connect. Check your connection and try again.");
+  }
   const contentType = response.headers.get("content-type") || "";
   const body = contentType.includes("application/json") ? await response.json() : await response.text();
   if (!response.ok) {
@@ -77,11 +82,12 @@ function publicHeader(active) {
       <a class="brand" href="/" data-nav>
         <img src="/icon.svg" alt="" width="38" height="38" />
         <span class="brand-copy">
-          <span class="brand-kicker">Codex Community Meetup</span>
-          <span class="brand-title">Bangkok #3</span>
+          <span class="brand-kicker">DevDay Exchange Community:</span>
+          <span class="brand-title">Bangkok</span>
         </span>
       </a>
       <nav class="nav" aria-label="Challenge navigation">
+        <a href="/" data-nav ${active === "home" ? 'aria-current="page"' : ""}>Challenge</a>
         <a href="/submit" data-nav ${active === "submit" ? 'aria-current="page"' : ""}>Submit</a>
         <a href="/gallery" data-nav ${active === "gallery" ? 'aria-current="page"' : ""}>Gallery</a>
         ${eventState?.resultsPublished ? `<a href="/results" data-nav ${active === "results" ? 'aria-current="page"' : ""}>Results</a>` : ""}
@@ -92,7 +98,7 @@ function publicHeader(active) {
 
 function publicFooter() {
   const footer = element("footer", "site-footer");
-  footer.innerHTML = `Codex Community Meetup Bangkok #3 · <a href="/manual" data-nav>User manual</a> · <a href="/admin" data-nav>Organizer</a>`;
+  footer.innerHTML = `DevDay Exchange Community: Bangkok · <a href="/manual" data-nav>User manual</a> · <a href="/admin" data-nav>Organizer</a>`;
   return footer;
 }
 
@@ -130,30 +136,35 @@ function renderHome() {
   main.id = "main";
   const status = statusCopy(eventState);
   main.innerHTML = `
-    <section class="hero" aria-labelledby="challenge-title">
-      <img class="hero-art" src="/meetup-brand.png" alt="Codex Community Meetup Bangkok" />
-      <div class="hero-copy">
+    <section class="town-intro" aria-labelledby="challenge-title">
+      <div class="town-copy">
         <div class="status-pill ${status.className}">${status.label}</div>
-        <p class="eyebrow">One-shot challenge</p>
         <h1 id="challenge-title">Build once.<br />Ship it.</h1>
-        <p class="hero-lead">45 minutes · one prompt</p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="/submit" data-nav>Submit project</a>
-          <a class="button button-secondary" href="/gallery" data-nav>Gallery</a>
+        <p>Explore the one-shot builds from your community. Find a favorite. Cast your vote.</p>
+        <div class="town-facts" aria-label="Challenge rules">
+          <span><b>45</b> minutes</span><span><b>1</b> prompt</span><span><b>1</b> vote</span>
+        </div>
+        <div class="town-actions">
+          <a class="button button-primary" href="#projects">Explore projects</a>
+          ${eventState.submissionsOpen ? '<a class="button button-secondary" href="/submit" data-nav>Submit project</a>' : ''}
         </div>
       </div>
-    </section>
-    <div class="info-strip" aria-label="Event details">
-      <div class="info-item"><span>Build</span><strong>45 min</strong></div>
-      <div class="info-item"><span>Prompt</span><strong>1</strong></div>
-      <div class="info-item"><span>Vote</span><strong>1</strong></div>
-    </div>
-    <section class="workflow" aria-label="How it works">
-      <strong>Build → Submit → Vote</strong>
-      <span>Accepted projects go to the gallery.</span>
+      <div class="town-world">
+        <img src="/assets/pocket-town.webp" width="1536" height="1024" fetchpriority="high" alt="A pixel-art town square with trees, visitors, and a community garden." />
+        <span class="world-sign">Welcome, builders.</span>
+      </div>
     </section>`;
+  const gallery = element("section", "town-gallery");
+  gallery.id = "projects";
+  gallery.tabIndex = -1;
+  gallery.setAttribute("aria-labelledby", "home-projects-title");
+  gallery.innerHTML = `<div class="page-head"><div><h2 id="home-projects-title">Projects</h2><p>Accepted builds from the community.</p></div>
+    ${eventState.votingOpen ? `<div class="live-vote-total" id="gallery-live-votes">Live · ${eventState.votesCast} vote${eventState.votesCast === 1 ? "" : "s"}</div>` : ''}</div>`;
+  appendProjectGallery(gallery);
+  main.append(gallery);
   publicShell("home", main);
-  document.title = "One-Shot Build Challenge · Bangkok";
+  document.title = "DevDay Exchange Community: Bangkok";
+  if (eventState.votingOpen) startPublicVoteUpdates();
 }
 
 function renderSubmit() {
@@ -185,7 +196,7 @@ function renderSubmit() {
       </aside>
     </div>`;
   publicShell("submit", main);
-  document.title = "Submit · One-Shot Build Challenge";
+  document.title = "Submit · DevDay Exchange Community: Bangkok";
 
   const content = document.querySelector("#submission-content");
   if (!eventState.submissionsOpen) {
@@ -263,6 +274,7 @@ function handleScreenshotPreview(event) {
   preview.src = screenshotPreviewUrl;
   preview.alt = "Selected project screenshot preview";
   zone.querySelector("#upload-copy")?.remove();
+  zone.querySelector(".upload-preview")?.remove();
   zone.prepend(preview);
 }
 
@@ -277,15 +289,18 @@ async function handleProjectSubmission(event) {
     await api("/api/submissions", { method: "POST", body: new FormData(form) });
     const content = document.querySelector("#submission-content");
     content.innerHTML = `
-      <div class="success-state">
-        <div class="success-icon">✓</div>
+      <div class="success-state" tabindex="-1">
+        <div class="success-icon" aria-hidden="true">✓</div>
         <h2>Project submitted</h2>
         <p>It will appear after organizer approval.</p>
         <a class="button button-secondary" href="/gallery" data-nav>Gallery</a>
       </div>`;
+    content.querySelector(".success-state").focus();
     showToast("Project submitted for organizer review.");
   } catch (error) {
     errorTarget.append(element("div", "inline-error", error.message));
+    errorTarget.tabIndex = -1;
+    errorTarget.focus();
     showToast(error.message, true);
     setBusy(button, false);
   }
@@ -297,7 +312,7 @@ function createProjectCard(project) {
   link.href = project.projectUrl;
   link.target = "_blank";
   link.rel = "noopener noreferrer";
-  link.setAttribute("aria-label", `Open ${project.title} by ${project.publisherName}`);
+  link.setAttribute("aria-label", `Open ${project.title} by ${project.publisherName} (new tab)`);
 
   const imageWrap = element("div", "project-image-wrap");
   const image = element("img", "project-image");
@@ -305,6 +320,10 @@ function createProjectCard(project) {
   image.alt = `${project.title} project screenshot`;
   image.loading = "lazy";
   image.decoding = "async";
+  image.addEventListener("error", () => {
+    image.remove();
+    imageWrap.append(element("span", "image-unavailable", "Screenshot unavailable"));
+  }, { once: true });
   imageWrap.append(image);
   if (Number.isInteger(project.rank)) {
     imageWrap.append(element("span", "rank-badge", `#${project.rank}`));
@@ -315,7 +334,7 @@ function createProjectCard(project) {
     element("h2", "", project.title),
     element("p", "publisher", `By ${project.publisherName}`),
     element("p", "project-description", project.description),
-    element("span", "project-open-hint", "Open ↗")
+    element("span", "project-open-hint", "Open project ↗")
   );
   link.append(imageWrap, body);
 
@@ -339,6 +358,19 @@ function createProjectCard(project) {
   return card;
 }
 
+function appendProjectGallery(container) {
+  if (projects.length === 0) {
+    const empty = element("div", "empty-state");
+    empty.innerHTML = `<img src="/icon.svg" alt="" /><h2>No projects yet</h2><p>Accepted projects will appear here.</p>`;
+    container.append(empty);
+  } else {
+    const grid = element("section", "gallery-grid");
+    grid.setAttribute("aria-label", "Accepted project gallery");
+    for (const project of projects) grid.append(createProjectCard(project));
+    container.append(grid);
+  }
+}
+
 function renderGallery() {
   const main = element("main", "page");
   main.id = "main";
@@ -356,18 +388,9 @@ function renderGallery() {
     </div>`;
   main.append(head);
 
-  if (projects.length === 0) {
-    const empty = element("div", "empty-state");
-    empty.innerHTML = `<img src="/icon.svg" alt="" /><h2>No projects yet</h2><p>Accepted projects will appear here.</p>`;
-    main.append(empty);
-  } else {
-    const grid = element("section", "gallery-grid");
-    grid.setAttribute("aria-label", "Accepted project gallery");
-    for (const project of projects) grid.append(createProjectCard(project));
-    main.append(grid);
-  }
+  appendProjectGallery(main);
   publicShell("gallery", main);
-  document.title = `${eventState.resultsPublished ? "Results" : "Gallery"} · One-Shot Build Challenge`;
+  document.title = `${eventState.resultsPublished ? "Results" : "Gallery"} · DevDay Exchange Community: Bangkok`;
   if (eventState.votingOpen) startPublicVoteUpdates();
 }
 
@@ -432,7 +455,7 @@ function renderResults() {
   }
 
   publicShell("results", main);
-  document.title = "Final results · One-Shot Build Challenge";
+  document.title = "Final results · DevDay Exchange Community: Bangkok";
 }
 
 function renderUserManual() {
@@ -488,7 +511,7 @@ function renderUserManual() {
       </section>
     </div>`;
   publicShell("manual", main);
-  document.title = "User manual · One-Shot Build Challenge";
+  document.title = "User manual · DevDay Exchange Community: Bangkok";
 }
 
 function stopPublicVoteUpdates() {
@@ -504,9 +527,14 @@ async function refreshPublicVoteTotal() {
   try {
     const state = await api("/api/public/state");
     target.textContent = `${state.votingOpen ? "Live" : "Voting closed"} · ${state.votesCast} vote${state.votesCast === 1 ? "" : "s"}`;
-    if (!state.votingOpen) stopPublicVoteUpdates();
+    const phaseChanged = eventState.votingOpen !== state.votingOpen || eventState.resultsPublished !== state.resultsPublished;
+    eventState = state;
+    if (phaseChanged) {
+      voteModal.close();
+      await renderRoute();
+    }
   } catch {
-    // Keep the most recent count when a refresh fails.
+    target.textContent = "Vote total temporarily unavailable. Reconnecting…";
   } finally {
     publicVoteRefreshing = false;
   }
@@ -604,7 +632,7 @@ function renderAdminLogin(message = "") {
     const error = element("div", "inline-error", message);
     document.querySelector("#admin-login-error").append(error);
   }
-  document.title = "Organizer · One-Shot Build Challenge";
+  document.title = "Organizer · DevDay Exchange Community: Bangkok";
   document.querySelector("#admin-login-form").addEventListener("submit", handleAdminLogin);
 }
 
@@ -631,7 +659,7 @@ function adminHeader() {
     <div class="admin-header-inner">
       <a class="brand" href="/admin" data-nav>
         <img src="/icon.svg" alt="" width="38" height="38" />
-        <span><h1>Organizer</h1><p>Bangkok #3</p></span>
+        <span><h1>Organizer</h1><p>DevDay Exchange Community: Bangkok</p></span>
       </a>
       <div class="admin-header-actions">
         <nav class="toolbar-actions admin-header-links" aria-label="Organizer links">
@@ -795,7 +823,7 @@ function renderAdminDashboard(data) {
 
   shell.append(adminHeader(), main);
   app.replaceChildren(shell);
-  document.title = "Organizer · One-Shot Build Challenge";
+  document.title = "Organizer · DevDay Exchange Community: Bangkok";
   document.querySelector("#admin-logout").addEventListener("click", handleAdminLogout);
   document.querySelector("#reset-all-votes").addEventListener("click", (event) => resetAllVotes(event.currentTarget));
   renderEmailWhitelist(data);
@@ -1447,7 +1475,7 @@ async function renderAdminLive() {
       <div class="standalone-admin-top">
         <a class="brand" href="/admin" data-nav>
           <img src="/icon.svg" alt="" width="38" height="38" />
-          <span><strong>Bangkok #3</strong></span>
+          <span><strong>DevDay Exchange Community: Bangkok</strong></span>
         </a>
         <div class="toolbar-actions">
           <a class="button button-secondary button-small" href="/admin/total-vote-only-view" data-nav>Total-vote-only view</a>
@@ -1601,6 +1629,12 @@ async function handleAdminLogout() {
 async function renderRoute() {
   stopPublicVoteUpdates();
   const path = routePath();
+  document.documentElement.toggleAttribute("data-public", !path.startsWith("/admin"));
+  document.querySelectorAll("dialog[open]").forEach(dialog => dialog.close());
+  if (screenshotPreviewUrl) {
+    URL.revokeObjectURL(screenshotPreviewUrl);
+    screenshotPreviewUrl = null;
+  }
   if (path === "/admin") await renderAdmin();
   else if (path === "/admin/votes") await renderAdminVoteAudit();
   else if (path === "/admin/manual") await renderAdminManual();
@@ -1610,12 +1644,17 @@ async function renderRoute() {
     stopAdminScoreUpdates();
     await renderPublic(path);
   }
+  const main = document.querySelector("#main");
+  if (main) {
+    main.tabIndex = -1;
+    main.focus({ preventScroll: true });
+  }
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 
 document.addEventListener("click", (event) => {
   const link = event.target.closest("a[data-nav]");
-  if (!link || link.origin !== window.location.origin) return;
+  if (!link || link.origin !== window.location.origin || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
   history.pushState({}, "", link.href);
   renderRoute();
@@ -1642,8 +1681,12 @@ document.querySelectorAll("dialog").forEach((dialog) => {
 });
 
 document.querySelector("#copy-prompt").addEventListener("click", async () => {
-  await navigator.clipboard.writeText(document.querySelector("#prompt-content").textContent);
-  showToast("Prompt copied.");
+  try {
+    await navigator.clipboard.writeText(document.querySelector("#prompt-content").textContent);
+    showToast("Prompt copied.");
+  } catch {
+    showToast("Copy unavailable. Select the prompt text and copy it manually.", true);
+  }
 });
 
 document.querySelector("#vote-form").addEventListener("submit", async (event) => {

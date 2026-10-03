@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-public>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#111936" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#eaf0dc" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1b2d25" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta
       http-equiv="Content-Security-Policy"
@@ -12,24 +13,26 @@
     />
     <meta
       name="description"
-      content="Submit, explore, and vote in the Codex Community Meetup Bangkok #3 One-Shot Build Challenge."
+      content="Submit, explore, and vote in the DevDay Exchange Community: Bangkok One-Shot Build Challenge."
     />
-    <title>One-Shot Build Challenge · Bangkok</title>
+    <title>DevDay Exchange Community: Bangkok</title>
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/styles.css?v=20260830-2" />
-    <script type="module" src="/app.js?v=20260830-2"></script>
+    <link rel="stylesheet" href="/styles.css?v=20261003-1" />
+    <link rel="stylesheet" href="/pocket-town.css?v=20261003-1" />
+    <script type="module" src="/app.js?v=20261003-1"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <div id="app">
       <main class="loading-screen" id="main">
         <img src="/icon.svg" width="54" height="54" alt="" />
-        <p>Opening the challenge…</p>
+        <p role="status">Opening the challenge…</p>
+        <noscript>Enable JavaScript to browse projects, submit your build, and vote.</noscript>
       </main>
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <dialog class="modal prompt-modal" id="prompt-modal">
+    <dialog class="modal prompt-modal" id="prompt-modal" aria-labelledby="prompt-title">
       <div class="modal-head">
         <div>
           <p class="eyebrow">Complete original prompt</p>
@@ -44,7 +47,7 @@
       </div>
     </dialog>
 
-    <dialog class="modal vote-modal" id="vote-modal">
+    <dialog class="modal vote-modal" id="vote-modal" aria-labelledby="vote-project-title" aria-describedby="vote-email-help">
       <form id="vote-form">
         <div class="modal-head">
           <div>
@@ -59,6 +62,7 @@
           <span>Your email</span>
           <input
             id="vote-voter-email"
+            aria-describedby="vote-email-help vote-error"
             name="voterEmail"
             type="email"
             autocomplete="email"

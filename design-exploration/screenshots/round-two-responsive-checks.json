@@ -1,0 +1,130 @@
+[
+  {
+    "direction": "town-map",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 1440
+  },
+  {
+    "direction": "town-journal",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 1440
+  },
+  {
+    "direction": "index-console",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 1440
+  },
+  {
+    "direction": "index-catalog",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 1440
+  },
+  {
+    "direction": "town-map",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 834
+  },
+  {
+    "direction": "town-journal",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 834
+  },
+  {
+    "direction": "index-console",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 834
+  },
+  {
+    "direction": "index-catalog",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 834
+  },
+  {
+    "direction": "town-map",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "direction": "town-journal",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "direction": "index-console",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "direction": "index-catalog",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "direction": "town-map",
+    "imagesLoaded": true,
+    "longTitle": true,
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "direction": "town-journal",
+    "imagesLoaded": true,
+    "longTitle": true,
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "direction": "index-console",
+    "imagesLoaded": true,
+    "longTitle": true,
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "direction": "index-catalog",
+    "imagesLoaded": true,
+    "longTitle": true,
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "confirmation": true,
+    "direction": "town-journal",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 1440
+  },
+  {
+    "confirmation": true,
+    "direction": "town-journal",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 834
+  },
+  {
+    "confirmation": true,
+    "direction": "town-journal",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "confirmation": true,
+    "direction": "index-console",
+    "imagesLoaded": true,
+    "overflow": false,
+    "width": 390
+  }
+]

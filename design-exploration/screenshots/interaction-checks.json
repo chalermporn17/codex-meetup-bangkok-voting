@@ -1,0 +1,19 @@
+[
+  "Voting opens with email focus",
+  "Invalid email keeps the vote dialog open",
+  "Pending vote disables duplicate submission",
+  "First vote records one active vote",
+  "Email normalization requires explicit replacement",
+  "Cancel preserves the existing vote",
+  "Confirmed replacement does not add a second vote",
+  "Repeating the same vote remains idempotent",
+  "Prompt viewer matches the selected project",
+  "Escape closes the dialog and restores opener focus",
+  "Failed vote focuses the inline error",
+  "Failed submission preserves the vote count",
+  "Whitelist rejection provides recovery guidance",
+  "Closed voting disables voting actions",
+  "Empty gallery gives a clear state",
+  "Loading state is exposed accessibly",
+  "Retry restores all six sample projects"
+]

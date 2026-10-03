@@ -29,6 +29,7 @@ const SCREENSHOT_CONTENT_TYPES = new Map([
   [".webp", "image/webp"]
 ]);
 const STATIC_CONTENT_TYPES = new Map([
+  [".ttf", "font/ttf"],
   [".css", "text/css; charset=utf-8"],
   [".html", "text/html; charset=utf-8"],
   [".js", "text/javascript; charset=utf-8"],

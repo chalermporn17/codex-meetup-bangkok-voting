@@ -10,6 +10,10 @@ The service uses these local resources:
 
 The service does not use Cloudflare Workers, D1, R2, or the Sites proxy.
 
+## Public frontend
+
+The public site uses the approved Pocket Town design and the existing submission, gallery, voting, and results APIs. Organizer tools keep their existing appearance. Local frontend checks and their limits are recorded in [frontend-validation/README.md](frontend-validation/README.md). The `design-exploration/` folder is a separate historical demo and is not copied into the Docker image.
+
 ## Start the service
 
 1. Create the environment file:

@@ -1,0 +1,107 @@
+[
+  {
+    "id": "town",
+    "size": "desktop",
+    "allImagesLoaded": true,
+    "scrollWidth": 1440,
+    "width": 1440
+  },
+  {
+    "id": "lcd",
+    "size": "desktop",
+    "allImagesLoaded": true,
+    "scrollWidth": 1440,
+    "width": 1440
+  },
+  {
+    "id": "yellow",
+    "size": "desktop",
+    "allImagesLoaded": true,
+    "scrollWidth": 1440,
+    "width": 1440
+  },
+  {
+    "id": "shell",
+    "size": "desktop",
+    "allImagesLoaded": true,
+    "scrollWidth": 1440,
+    "width": 1440
+  },
+  {
+    "id": "index",
+    "size": "desktop",
+    "allImagesLoaded": true,
+    "scrollWidth": 1440,
+    "width": 1440
+  },
+  {
+    "id": "town",
+    "size": "mobile",
+    "allImagesLoaded": true,
+    "scrollWidth": 390,
+    "width": 390
+  },
+  {
+    "id": "lcd",
+    "size": "mobile",
+    "allImagesLoaded": true,
+    "scrollWidth": 390,
+    "width": 390
+  },
+  {
+    "id": "yellow",
+    "size": "mobile",
+    "allImagesLoaded": true,
+    "scrollWidth": 390,
+    "width": 390
+  },
+  {
+    "id": "shell",
+    "size": "mobile",
+    "allImagesLoaded": true,
+    "scrollWidth": 390,
+    "width": 390
+  },
+  {
+    "id": "index",
+    "size": "mobile",
+    "allImagesLoaded": true,
+    "scrollWidth": 390,
+    "width": 390
+  },
+  {
+    "id": "town",
+    "size": "tablet",
+    "allImagesLoaded": true,
+    "scrollWidth": 834,
+    "width": 834
+  },
+  {
+    "id": "lcd",
+    "size": "tablet",
+    "allImagesLoaded": true,
+    "scrollWidth": 834,
+    "width": 834
+  },
+  {
+    "id": "yellow",
+    "size": "tablet",
+    "allImagesLoaded": true,
+    "scrollWidth": 834,
+    "width": 834
+  },
+  {
+    "id": "shell",
+    "size": "tablet",
+    "allImagesLoaded": true,
+    "scrollWidth": 834,
+    "width": 834
+  },
+  {
+    "id": "index",
+    "size": "tablet",
+    "allImagesLoaded": true,
+    "scrollWidth": 834,
+    "width": 834
+  }
+]
