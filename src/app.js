@@ -44,6 +44,7 @@ const CONTENT_SECURITY_POLICY = [
   "style-src 'self'",
   "script-src 'self'",
   "connect-src 'self'",
+  "frame-src https: http:",
   "base-uri 'none'",
   "form-action 'self'",
   "frame-ancestors 'none'"

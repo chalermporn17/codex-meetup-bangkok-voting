@@ -3,6 +3,12 @@ const toast = document.querySelector("#toast");
 const promptModal = document.querySelector("#prompt-modal");
 const voteModal = document.querySelector("#vote-modal");
 const editModal = document.querySelector("#edit-modal");
+const gameModal = document.querySelector("#game-modal");
+let playingProject = null;
+let gameOpener = null;
+let gameScrollY = 0;
+let gameRoute = null;
+let gameLoadingTimer = null;
 
 let eventState = null;
 let projects = [];
@@ -164,7 +170,7 @@ function renderHome() {
   main.append(gallery);
   publicShell("home", main);
   document.title = "DevDay Exchange Community: Bangkok";
-  if (eventState.votingOpen) startPublicVoteUpdates();
+  startPublicVoteUpdates();
 }
 
 function renderSubmit() {
@@ -312,7 +318,13 @@ function createProjectCard(project) {
   link.href = project.projectUrl;
   link.target = "_blank";
   link.rel = "noopener noreferrer";
-  link.setAttribute("aria-label", `Open ${project.title} by ${project.publisherName} (new tab)`);
+  link.setAttribute("aria-label", `Play ${project.title} by ${project.publisherName}`);
+  link.setAttribute("aria-haspopup", "dialog");
+  link.addEventListener("click", (event) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    openGame(project, link);
+  });
 
   const imageWrap = element("div", "project-image-wrap");
   const image = element("img", "project-image");
@@ -333,23 +345,35 @@ function createProjectCard(project) {
   body.append(
     element("h2", "", project.title),
     element("p", "publisher", `By ${project.publisherName}`),
-    element("p", "project-description", project.description),
-    element("span", "project-open-hint", "Open project ↗")
+    element("p", "project-description", project.description)
   );
   link.append(imageWrap, body);
 
   const footer = element("div", "card-footer");
   const actions = element("div", "card-actions");
+  const playButton = element("button", "button button-primary button-small", "▶ Play");
+  playButton.type = "button";
+  playButton.dataset.playId = project.id;
+  playButton.setAttribute("aria-label", `Play ${project.title}`);
+  playButton.setAttribute("aria-haspopup", "dialog");
+  playButton.addEventListener("click", () => openGame(project, playButton));
+  actions.append(playButton);
+  const externalLink = element("a", "button button-secondary button-small", "Open in new tab ↗");
+  externalLink.href = project.projectUrl;
+  externalLink.target = "_blank";
+  externalLink.rel = "noopener noreferrer";
+  externalLink.setAttribute("aria-label", `Open ${project.title} in new tab`);
+  actions.append(externalLink);
   const promptButton = element("button", "button button-secondary button-small", "Prompt");
   promptButton.type = "button";
   promptButton.addEventListener("click", () => openPrompt(project));
-  actions.append(promptButton);
   if (eventState.votingOpen) {
-    const voteButton = element("button", "button button-accent button-small", "Vote");
+    const voteButton = element("button", "button button-secondary button-small", "Vote");
     voteButton.type = "button";
     voteButton.addEventListener("click", () => openVote(project));
     actions.append(voteButton);
   }
+  actions.append(promptButton);
   footer.append(actions);
   if (Number.isInteger(project.voteCount)) {
     footer.append(element("span", "vote-count", `${project.voteCount} vote${project.voteCount === 1 ? "" : "s"}`));
@@ -380,7 +404,7 @@ function renderGallery() {
     <div>
       <p class="eyebrow">Gallery</p>
       <h1>${eventState.resultsPublished ? "Results" : "Projects"}</h1>
-      <p>Tap a project to open it.</p>
+      <p>Pick a game, press Play, and try it here.</p>
     </div>
     <div class="gallery-status-group">
       <div class="status-pill ${status.className}">${status.label}</div>
@@ -391,7 +415,7 @@ function renderGallery() {
   appendProjectGallery(main);
   publicShell("gallery", main);
   document.title = `${eventState.resultsPublished ? "Results" : "Gallery"} · DevDay Exchange Community: Bangkok`;
-  if (eventState.votingOpen) startPublicVoteUpdates();
+  startPublicVoteUpdates();
 }
 
 function createRankingRow(project, maxVotes) {
@@ -473,6 +497,17 @@ function renderUserManual() {
     </div>
     <div class="manual-grid">
       <section class="manual-card">
+        <p class="eyebrow">Play</p>
+        <h2>Try the submitted games</h2>
+        <ol>
+          <li>Open the <a href="/gallery" data-nav>Gallery</a> and select <strong>Play</strong> on a project.</li>
+          <li>Click or tap inside the game to use its controls. Choose <strong>Fullscreen</strong> for more room when supported.</li>
+          <li>Choose <strong>Next game</strong> to try another project, or <strong>Vote</strong> while voting is open.</li>
+          <li>Close the player to return to your place in the gallery. Closing or switching games ends the current session.</li>
+        </ol>
+        <p class="manual-note">If a game does not appear, use <strong>Open in new tab</strong>. Some sites only work in their own tab.</p>
+      </section>
+      <section class="manual-card">
         <p class="eyebrow">Submit</p>
         <h2>Submit your project</h2>
         <ol>
@@ -522,19 +557,25 @@ function stopPublicVoteUpdates() {
 
 async function refreshPublicVoteTotal() {
   const target = document.querySelector("#gallery-live-votes");
-  if (publicVoteRefreshing || !target) return;
+  const requestPath = routePath();
+  if (publicVoteRefreshing || !["/", "/gallery"].includes(requestPath)) return;
   publicVoteRefreshing = true;
   try {
     const state = await api("/api/public/state");
-    target.textContent = `${state.votingOpen ? "Live" : "Voting closed"} · ${state.votesCast} vote${state.votesCast === 1 ? "" : "s"}`;
-    const phaseChanged = eventState.votingOpen !== state.votingOpen || eventState.resultsPublished !== state.resultsPublished;
+    if (routePath() !== requestPath) return;
+    if (target) target.textContent = `${state.votingOpen ? "Live" : "Voting closed"} · ${state.votesCast} vote${state.votesCast === 1 ? "" : "s"}`;
+    const phaseChanged = eventState.votingOpen !== state.votingOpen ||
+      eventState.resultsPublished !== state.resultsPublished ||
+      eventState.submissionsOpen !== state.submissionsOpen ||
+      eventState.acceptedCount !== state.acceptedCount;
     eventState = state;
+    if (gameModal.open) syncGameControls();
     if (phaseChanged) {
       voteModal.close();
       await renderRoute();
     }
   } catch {
-    target.textContent = "Vote total temporarily unavailable. Reconnecting…";
+    if (target) target.textContent = "Vote total temporarily unavailable. Reconnecting…";
   } finally {
     publicVoteRefreshing = false;
   }
@@ -561,6 +602,132 @@ function showVoteError(target, message) {
   target.replaceChildren(element("div", "inline-error", message));
   requestAnimationFrame(() => target.focus());
 }
+
+function syncGameControls() {
+  document.querySelector("#game-vote").hidden = !eventState?.votingOpen;
+  document.querySelector("#game-next").disabled = projects.length < 2;
+  document.querySelector("#game-fullscreen").hidden = !(document.fullscreenEnabled &&
+    typeof document.querySelector("#game-shell").requestFullscreen === "function");
+  const phaseLabel = eventState?.votingOpen
+    ? "Voting open"
+    : eventState?.resultsPublished ? "Free play · Results are published" : "Free play · Voting is closed";
+  const phase = document.querySelector("#game-phase");
+  if (phase.textContent !== phaseLabel) phase.textContent = phaseLabel;
+}
+
+function openGame(project, opener) {
+  if (typeof gameModal.showModal !== "function") {
+    window.open(project.projectUrl, "_blank", "noopener,noreferrer");
+    return;
+  }
+  if (!gameModal.open) {
+    gameOpener = opener;
+    gameScrollY = window.scrollY;
+    gameRoute = routePath();
+    document.documentElement.classList.add("game-is-open");
+    gameModal.showModal();
+  }
+  playingProject = project;
+  document.querySelector("#game-title").textContent = project.title;
+  const index = projects.findIndex((entry) => entry.id === project.id);
+  document.querySelector("#game-position").textContent = `Now playing · ${index + 1} of ${projects.length}`;
+  document.querySelector("#game-external").href = project.projectUrl;
+  syncGameControls();
+  clearTimeout(gameLoadingTimer);
+  const stage = document.querySelector("#game-stage");
+  const status = document.querySelector("#game-status");
+  stage.replaceChildren();
+  // Never give a same-origin submitted page scripts plus same-origin sandbox access.
+  const url = new URL(project.projectUrl);
+  if (!["https:", "http:"].includes(url.protocol) || url.origin === location.origin) {
+    status.textContent = "Open this project in a new tab to play.";
+    stage.append(element("p", "game-unavailable", "This project opens in its own tab. Use the link below to play."));
+    return;
+  }
+  const frame = element("iframe", "game-frame");
+  frame.title = `${project.title} — playable game`;
+  frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-pointer-lock");
+  frame.setAttribute("allow", "fullscreen");
+  frame.setAttribute("allowfullscreen", "");
+  frame.referrerPolicy = "no-referrer";
+  status.textContent = "Loading game…";
+  const fallback = () => {
+    status.textContent = "Game not showing? Try opening it in a new tab.";
+  };
+  // Cross-origin load events cannot tell us whether the host refused embedding.
+  // Keep an external link visible even after load, without claiming play succeeded.
+  frame.addEventListener("load", () => {
+    if (!frame.isConnected) return;
+    clearTimeout(gameLoadingTimer);
+    status.textContent = "Click or tap inside to play. Blank screen?";
+  });
+  frame.addEventListener("error", () => {
+    if (!frame.isConnected) return;
+    clearTimeout(gameLoadingTimer);
+    fallback();
+  });
+  frame.src = url.href;
+  stage.append(frame);
+  gameLoadingTimer = setTimeout(fallback, 12_000);
+}
+
+async function exitGameFullscreen() {
+  if (document.fullscreenElement) {
+    await document.exitFullscreen().catch(() => undefined);
+  }
+}
+
+async function closeGame() {
+  await exitGameFullscreen();
+  gameModal.close();
+}
+
+gameModal.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeGame();
+});
+gameModal.addEventListener("close", () => {
+  clearTimeout(gameLoadingTimer);
+  document.querySelector("#game-stage").replaceChildren();
+  gameModal.classList.remove("game-expanded");
+  document.querySelector("#game-fullscreen").textContent = "Fullscreen";
+  document.documentElement.classList.remove("game-is-open");
+  playingProject = null;
+  if (routePath() === gameRoute) {
+    window.scrollTo({ top: gameScrollY, behavior: "instant" });
+    if (gameOpener?.isConnected) gameOpener.focus({ preventScroll: true });
+    else document.querySelector("[data-play-id]")?.focus({ preventScroll: true });
+  }
+  gameOpener = null;
+});
+document.querySelector("#close-game").addEventListener("click", closeGame);
+document.querySelector("#game-next").addEventListener("click", () => {
+  if (!playingProject || projects.length < 2) return;
+  const index = projects.findIndex((project) => project.id === playingProject.id);
+  openGame(projects[(index + 1) % projects.length]);
+});
+document.querySelector("#game-vote").addEventListener("click", async () => {
+  await exitGameFullscreen();
+  if (playingProject && eventState?.votingOpen) openVote(playingProject);
+});
+document.querySelector("#game-fullscreen").addEventListener("click", async () => {
+  if (gameModal.classList.contains("game-expanded")) {
+    gameModal.classList.remove("game-expanded");
+    document.querySelector("#game-fullscreen").textContent = "Fullscreen";
+    return;
+  }
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.querySelector("#game-shell").requestFullscreen();
+  } catch {
+    gameModal.classList.add("game-expanded");
+    document.querySelector("#game-fullscreen").textContent = "Restore size";
+    document.querySelector("#game-status").textContent = "Expanded to fit this window.";
+  }
+});
+document.addEventListener("fullscreenchange", () => {
+  document.querySelector("#game-fullscreen").textContent = document.fullscreenElement ? "Exit fullscreen" : "Fullscreen";
+});
 
 function openPrompt(project) {
   document.querySelector("#prompt-title").textContent = project.title;
@@ -1627,10 +1794,13 @@ async function handleAdminLogout() {
 }
 
 async function renderRoute() {
+  if (gameModal.open && routePath() !== gameRoute) await closeGame();
   stopPublicVoteUpdates();
   const path = routePath();
   document.documentElement.toggleAttribute("data-public", !path.startsWith("/admin"));
-  document.querySelectorAll("dialog[open]").forEach(dialog => dialog.close());
+  document.querySelectorAll("dialog[open]").forEach(dialog => {
+    if (dialog !== gameModal) dialog.close();
+  });
   if (screenshotPreviewUrl) {
     URL.revokeObjectURL(screenshotPreviewUrl);
     screenshotPreviewUrl = null;
@@ -1645,11 +1815,11 @@ async function renderRoute() {
     await renderPublic(path);
   }
   const main = document.querySelector("#main");
-  if (main) {
+  if (main && !gameModal.open) {
     main.tabIndex = -1;
     main.focus({ preventScroll: true });
   }
-  window.scrollTo({ top: 0, behavior: "instant" });
+  if (!gameModal.open) window.scrollTo({ top: 0, behavior: "instant" });
 }
 
 document.addEventListener("click", (event) => {
@@ -1688,7 +1858,10 @@ document.querySelectorAll("[data-close-dialog]").forEach((button) => {
 
 document.querySelectorAll("dialog").forEach((dialog) => {
   dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) dialog.close();
+    if (event.target === dialog) {
+      if (dialog === gameModal) closeGame();
+      else dialog.close();
+    }
   });
 });
 
@@ -1721,6 +1894,7 @@ document.querySelector("#vote-form").addEventListener("submit", async (event) =>
     });
     voteModal.close();
     showToast(result.message);
+    if (gameModal.open) document.querySelector("#game-status").textContent = result.message;
     await refreshPublicVoteTotal();
   } catch (error) {
     if (error.code === "VOTE_ALREADY_EXISTS") {
@@ -1737,6 +1911,7 @@ document.querySelector("#vote-form").addEventListener("submit", async (event) =>
           });
           voteModal.close();
           showToast(result.message);
+          if (gameModal.open) document.querySelector("#game-status").textContent = result.message;
         } catch (changeError) {
           showVoteError(errorTarget, changeError.message);
         }

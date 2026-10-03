@@ -133,3 +133,33 @@
   [data-public] .ranking-row {grid-template-columns:32px minmax(0,1fr);padding:16px 4px;gap:10px}
   [data-public] .ranking-label {flex-wrap:wrap;gap:4px}
 }
+
+/* The player keeps its controls outside the submitted game's document. */
+html.game-is-open {overflow:hidden;scrollbar-gutter:stable}
+[data-public] .game-modal {width:calc(100% - 40px);max-width:1440px;height:calc(100dvh - 40px);max-height:none;overflow:hidden;padding:0}
+[data-public] .game-modal[open] {display:flex;flex-direction:column}
+[data-public] .game-toolbar {display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 18px;border-bottom:1px solid var(--line);flex-shrink:0}
+[data-public] .game-heading {min-width:0}
+[data-public] .game-heading .eyebrow {display:block;margin:0 0 4px;font-size:.75rem}
+[data-public] .game-heading h2 {margin:0;font-size:1.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-public] .game-stage {flex:1;min-height:0;background:var(--bg-soft);display:flex}
+[data-public] .game-frame {display:block;width:100%;height:100%;border:0;background:#fff}
+[data-public] .game-unavailable {margin:auto;padding:24px;text-align:center}
+[data-public] .game-controls {flex-shrink:0;padding:12px 18px;border-top:1px solid var(--line)}
+[data-public] .game-actions {display:flex;flex-wrap:wrap;gap:10px}
+[data-public] .game-phase {align-self:center;margin-left:auto;color:var(--muted);font-size:.8125rem}
+[data-public] .game-actions [hidden] {display:none}
+[data-public] .game-help {margin:10px 0 0;color:var(--muted);font-size:.8125rem}
+[data-public] .game-help a {color:var(--text);text-decoration:underline;text-underline-offset:3px;display:inline-block;padding:4px 0}
+[data-public] .game-modal:fullscreen {width:100%;max-width:none;height:100%;margin:0;border:0}
+[data-public] .game-modal.game-expanded {width:100%;max-width:none;height:100dvh;max-height:none;margin:0;border:0}
+@media(max-width:680px) {
+  [data-public] .game-modal {width:100%;height:100dvh;max-width:none;max-height:none;margin:0;border:0}
+  [data-public] .game-toolbar {padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top))}
+  [data-public] .game-controls {padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+  [data-public] .game-actions {gap:8px}
+  [data-public] .game-actions .button {padding:10px 12px}
+  [data-public] .game-help {margin-top:6px}
+}
+[data-public] .game-shell {display:flex;flex-direction:column;flex:1;min-height:0;background:var(--panel);color:var(--text)}
+[data-public] .game-shell:fullscreen {width:100%;height:100%}

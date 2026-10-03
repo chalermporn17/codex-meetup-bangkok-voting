@@ -9,7 +9,7 @@
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' blob: data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'"
+      content="default-src 'self'; img-src 'self' blob: data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-src https: http:; base-uri 'none'; form-action 'self'"
     />
     <meta
       name="description"
@@ -18,8 +18,8 @@
     <title>DevDay Exchange Community: Bangkok</title>
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/styles.css?v=20261003-1" />
-    <link rel="stylesheet" href="/pocket-town.css?v=20261003-1" />
-    <script type="module" src="/app.js?v=20261003-1"></script>
+    <link rel="stylesheet" href="/pocket-town.css?v=20261003-2" />
+    <script type="module" src="/app.js?v=20261003-2"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -31,6 +31,28 @@
       </main>
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <dialog class="modal game-modal" id="game-modal" aria-labelledby="game-title">
+      <div class="game-shell" id="game-shell">
+      <div class="game-toolbar">
+        <div class="game-heading">
+          <p class="eyebrow" id="game-position">Now playing</p>
+          <h2 id="game-title"></h2>
+        </div>
+        <button class="icon-button" id="close-game" type="button" aria-label="Close game" autofocus>×</button>
+      </div>
+      <div class="game-stage" id="game-stage"></div>
+      <div class="game-controls">
+        <div class="game-actions">
+          <button class="button button-secondary button-small" id="game-fullscreen" type="button">Fullscreen</button>
+          <button class="button button-accent button-small" id="game-vote" type="button">Vote</button>
+          <button class="button button-primary button-small" id="game-next" type="button">Next game →</button>
+          <span class="game-phase" id="game-phase" aria-live="polite"></span>
+        </div>
+        <p class="game-help"><span id="game-status" role="status">Click or tap inside the game to play.</span> <a id="game-external" target="_blank" rel="noopener noreferrer">Open in new tab ↗</a></p>
+      </div>
+      </div>
+    </dialog>
 
     <dialog class="modal prompt-modal" id="prompt-modal" aria-labelledby="prompt-title">
       <div class="modal-head">

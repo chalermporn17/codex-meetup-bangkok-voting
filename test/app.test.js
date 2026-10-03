@@ -591,6 +591,32 @@ test("accepts prompts up to 1,000,000 characters", async () => {
   });
 });
 
+test("keeps accepted games playable in every non-voting phase", async () => {
+  const application = await startApplication(await newDataDirectory());
+  const ids = seedAuditProjects(application.database);
+  application.database.prepare("UPDATE submissions SET status = 'pending' WHERE id = ?").run(ids[1]);
+
+  for (const phase of [
+    { submissions: '1', results: '0' },
+    { submissions: '0', results: '0' },
+    { submissions: '0', results: '1' }
+  ]) {
+    const setting = application.database.prepare("UPDATE app_settings SET value = ? WHERE key = ?");
+    setting.run('0', 'voting_open');
+    setting.run(phase.submissions, 'submissions_open');
+    setting.run(phase.results, 'results_published');
+    const state = await (await fetch(`${application.origin}/api/public/state`)).json();
+    assert.equal(state.votingOpen, false);
+    const { projects } = await (await fetch(`${application.origin}/api/public/projects`)).json();
+    assert.equal(projects.length, 1, 'Only accepted games remain visible');
+    assert.equal(projects[0].id, ids[0]);
+    assert.equal(projects[0].projectUrl, 'https://example.com');
+    assert.equal('voteCount' in projects[0], phase.results === '1');
+    const vote = await submitAuditVote(application, 'player@example.test', ids[0]);
+    assert.equal(vote.status, 409, 'Playing does not enable closed voting');
+  }
+});
+
 test("serves the frontend and protects organizer routes", async () => {
   const application = await startApplication(await newDataDirectory());
 
@@ -600,10 +626,16 @@ test("serves the frontend and protects organizer routes", async () => {
   const pageHtml = await pageResponse.text();
   assert.match(pageHtml, /One-Shot Build Challenge/u);
   assert.match(pageHtml, /id="vote-error"/u);
-  assert.match(pageHtml, /app\.js\?v=20261003-1/u);
+  assert.match(pageHtml, /app\.js\?v=20261003-2/u);
   assert.match(pageHtml, /styles\.css\?v=20261003-1/u);
 
-  const appScriptResponse = await fetch(`${application.origin}/app.js?v=20261003-1`);
+  const policy = pageResponse.headers.get("content-security-policy");
+  assert.match(policy, /frame-src https: http:/u);
+  assert.match(policy, /frame-ancestors 'none'/u);
+  assert.match(policy, /script-src 'self'/u);
+  assert.match(pageHtml, /frame-src https: http:/u);
+
+  const appScriptResponse = await fetch(`${application.origin}/app.js?v=20261003-2`);
   assert.equal(appScriptResponse.status, 200);
   assert.equal(appScriptResponse.headers.get("cache-control"), "no-cache");
   const appScript = await appScriptResponse.text();
